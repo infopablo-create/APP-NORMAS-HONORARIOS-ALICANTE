@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.DS_Store
+data/
+
+# Credenciales, datos locales y copias de clientes
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+agenda-clientes-*.json
