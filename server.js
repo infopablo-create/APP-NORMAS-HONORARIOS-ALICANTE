@@ -27,12 +27,11 @@ export async function createApp({dbPath=process.env.APP_DB_PATH||path.resolve('d
  function clearSession(req,res){const cookie=(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('honorarios_session='));if(cookie)db.prepare('DELETE FROM sessions WHERE token_hash=?').run(tokenHash(cookie.slice('honorarios_session='.length)));res.setHeader('Set-Cookie',`honorarios_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureCookies?'; Secure':''}`);}
  function startSession(req,res,userId){clearSession(req,res);db.prepare('DELETE FROM sessions WHERE expires_at<=?').run(Date.now());const token=randomBytes(32).toString('hex');db.prepare('INSERT INTO sessions(token_hash,user_id,expires_at) VALUES(?,?,?)').run(tokenHash(token),userId,Date.now()+SESSION_SECONDS*1000);res.setHeader('Set-Cookie',`honorarios_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_SECONDS}${secureCookies?'; Secure':''}`);}
  const server=http.createServer(async(req,res)=>{
-  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
   try{
    const pathname=new URL(req.url,'http://localhost').pathname;
    if(pathname.startsWith('/api/')){
     if(req.method==='GET'&&pathname==='/api/session'){json(res,200,{user:session(req)});return;}
-    if(req.method==='GET'&&pathname==='/api/plans'){json(res,200,{billingEnabled:false,price:399,currency:'EUR',interval:'month'});return;}
     if(req.method!=='POST'){json(res,405,{error:'Método no permitido.'});return;}
     const expected=publicOrigin||(secureCookies?'https://':'http://')+req.headers.host;
     if(req.headers.origin&&req.headers.origin!==expected)throw bad(403,'Origen de solicitud no permitido.');
