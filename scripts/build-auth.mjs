@@ -8,7 +8,7 @@ for(const [location,entry] of Object.entries(lock.packages||{})){
  if(!location||entry.dev)continue;
  let license='';
  for(const name of ['LICENSE','LICENSE.md','LICENSE.txt','LICENSE-MIT','LICENSE-MIT.txt']){
-  try{license=await readFile(path.join(location,name),'utf8');break;}catch(e){if(e.code!=='ENOENT')throw e;}
+  try{license=(await readFile(path.join(location,name),'utf8')).replace(/\r\n?/g,'\n');break;}catch(e){if(e.code!=='ENOENT')throw e;}
  }
  notices.push(`${location.replace(/^node_modules\//,'')} ${entry.version}\nLicense: ${entry.license||'see package'}\n${license}\n`);
 }
